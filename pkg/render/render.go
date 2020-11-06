@@ -21,21 +21,31 @@ func NewAsciiWarBulletin() *AsciiWarBulletin {
 
 func (a *AsciiWarBulletin) Render(results model.Slice) {
 	globalBulletin, groupedBulletin := a.calculator.Calculate(results)
-	table := newTable([]string{"Path", "Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"})
-	table.Render()
+	headers := []string{"Path", "Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"}
+	table := newTable(headers)
+	oddColors := getColor(tablewriter.Colors{tablewriter.BgHiWhiteColor, tablewriter.FgBlackColor}, len(headers))
+	evenColors := getColor(tablewriter.Colors{tablewriter.BgHiBlackColor, tablewriter.FgWhiteColor}, len(headers))
 
 	i := 1
 	for path, group := range groupedBulletin {
 		row := append([]string{path}, group.Strings()...)
 		if i%2 == 1 {
-			table.Rich(row, []tablewriter.Colors{{tablewriter.FgCyanColor}})
+			table.Rich(row, oddColors)
 		} else {
-			table.Rich(row, []tablewriter.Colors{{tablewriter.FgWhiteColor}})
+			table.Rich(row, evenColors)
 		}
 		i++
 	}
 	table.SetFooter(append([]string{"Total"}, globalBulletin.Strings()...))
 	table.Render()
+}
+
+func getColor(color tablewriter.Colors, len int) []tablewriter.Colors {
+	colors := make([]tablewriter.Colors, len)
+	for i := 0; i < len; i++ {
+		colors[i] = color
+	}
+	return colors
 }
 
 func newTable(header []string) *tablewriter.Table {

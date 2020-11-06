@@ -6,6 +6,7 @@ import (
 
 type Slice interface {
 	Append(Record)
+	AppendAll([]Record)
 	Get(i int) Record
 	ToSlice() []Record
 	Len() int
@@ -27,6 +28,12 @@ func (t *ThreadSafeSlice) Append(value Record) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.slice = append(t.slice, value)
+}
+
+func (t *ThreadSafeSlice) AppendAll(value []Record) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.slice = append(t.slice, value...)
 }
 
 func (t *ThreadSafeSlice) Get(i int) Record {
