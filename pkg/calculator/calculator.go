@@ -6,7 +6,7 @@ import (
 )
 
 type StatisticsCalculator interface {
-	Calculate(records model.Slice) model.Statistics
+	Calculate(records model.Slice) (model.Statistics, map[string]model.Latencies)
 }
 
 type AssedioStatisticsCalculator struct {
