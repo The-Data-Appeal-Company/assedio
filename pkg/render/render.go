@@ -21,15 +21,21 @@ func NewAsciiWarBulletin() *AsciiWarBulletin {
 }
 
 func (a *AsciiWarBulletin) Render(results model.Slice) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"})
-	table.SetBorder(false)
+	table := newTable()
 	globalBulletin, groupedBulletin := a.calculator.Calculate(results)
 	table.Append(globalBulletin.Strings())
 	table.Render()
 	for path, group := range groupedBulletin {
 		fmt.Println(path)
+		table = newTable()
 		table.Append(group.Strings())
+		table.Render()
 	}
-	table.Render()
+}
+
+func newTable() *tablewriter.Table {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader([]string{"Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"})
+	table.SetBorder(false)
+	return table
 }
