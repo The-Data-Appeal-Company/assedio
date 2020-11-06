@@ -27,7 +27,7 @@ func (a *AsciiWarBulletin) Render(results model.Slice) {
 	table.Render()
 	for path, group := range groupedBulletin {
 		fmt.Println(path)
-		table = newTable()
+		table.ClearRows()
 		table.Append(group.Strings())
 		table.Render()
 	}
