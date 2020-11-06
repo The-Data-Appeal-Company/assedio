@@ -14,7 +14,7 @@ type Castle struct{}
 
 func (d *Castle) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-	if path == "error" {
+	if path == "/error" {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -59,6 +59,29 @@ func TestKnight_Hit(t *testing.T) {
 				{
 					Status: "200 OK",
 					Url:    test.ParseUrlOrDie("http://localhost:8080/c"),
+					Error:  false,
+				},
+			},
+		},
+		{
+			name: "should handle errors",
+			args: args{
+				urls: []string{
+					"/error",
+					"/a",
+				},
+				results: model.NewThreadSafeSlice(),
+			},
+			wantErr: false,
+			want: []model.Record{
+				{
+					Status: "500 Internal Server Error",
+					Url:    test.ParseUrlOrDie("http://localhost:8080/error"),
+					Error:  true,
+				},
+				{
+					Status: "200 OK",
+					Url:    test.ParseUrlOrDie("http://localhost:8080/a"),
 					Error:  false,
 				},
 			},
