@@ -3,7 +3,6 @@ package render
 import (
 	"assedio/pkg/calculator"
 	"assedio/pkg/model"
-	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"os"
 )
@@ -21,21 +20,21 @@ func NewAsciiWarBulletin() *AsciiWarBulletin {
 }
 
 func (a *AsciiWarBulletin) Render(results model.Slice) {
-	table := newTable()
 	globalBulletin, groupedBulletin := a.calculator.Calculate(results)
-	table.Append(globalBulletin.Strings())
-	table.Render()
+	totTable := newTable([]string{"Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"})
+	totTable.Append(globalBulletin.Strings())
+	totTable.Render()
+
+	groupTable := newTable([]string{"Path", "Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"})
 	for path, group := range groupedBulletin {
-		fmt.Println(path)
-		table.ClearRows()
-		table.Append(group.Strings())
-		table.Render()
+		groupTable.Append(append([]string{path}, group.Strings()...))
 	}
+	groupTable.Render()
 }
 
-func newTable() *tablewriter.Table {
+func newTable(header []string) *tablewriter.Table {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"})
+	table.SetHeader(header)
 	table.SetBorder(false)
 	return table
 }

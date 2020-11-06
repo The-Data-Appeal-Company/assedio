@@ -1,6 +1,7 @@
 package reader
 
 import (
+	"assedio/pkg/test"
 	"github.com/stretchr/testify/require"
 	"net/url"
 	"testing"
@@ -34,9 +35,9 @@ func TestFileStreamingReader_Read(t *testing.T) {
 			},
 			wantErr: false,
 			want: []*url.URL{
-				parseUrlOrDie("http://trippa.io"),
-				parseUrlOrDie("http://lampre.dotto"),
-				parseUrlOrDie("http://antani.it"),
+				test.ParseUrlOrDie("http://trippa.io"),
+				test.ParseUrlOrDie("http://lampre.dotto"),
+				test.ParseUrlOrDie("http://antani.it"),
 			},
 		},
 	}
@@ -53,12 +54,4 @@ func TestFileStreamingReader_Read(t *testing.T) {
 			require.Equal(t, tt.want, consumed)
 		})
 	}
-}
-
-func parseUrlOrDie(s string) *url.URL {
-	parse, err := url.Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return parse
 }
