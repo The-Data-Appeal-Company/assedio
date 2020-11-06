@@ -49,6 +49,10 @@ func (fa *FightArmy) Fight(ctx context.Context) error {
 		return fmt.Errorf("file not specified")
 	}
 
+	if flagConcurrency < 1 {
+		return fmt.Errorf("you can't fight without knights")
+	}
+
 	fa.SetupCloseHandler()
 	color.Red(fmt.Sprintf("Starting Fight with %d knights ...", flagConcurrency))
 
