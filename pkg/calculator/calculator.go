@@ -6,13 +6,13 @@ import (
 )
 
 type StatisticsCalculator interface {
-	Calculate(records model.Slice) (model.Statistics, map[string]model.Latencies)
+	Calculate(records model.Slice) (model.Statistics, map[string]model.Statistics)
 }
 
 type AssedioStatisticsCalculator struct {
 }
 
-func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Statistics, map[string]model.Latencies) {
+func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Statistics, map[string]model.Statistics) {
 	total := records.Len()
 	errs := a.getErrors(records)
 
@@ -28,7 +28,6 @@ func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Stat
 	}
 
 	//calculate total stats
-
 	data := stats.LoadRawData(latencies)
 	median, _ := stats.Median(data)
 	max, _ := stats.Max(data)
@@ -37,7 +36,7 @@ func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Stat
 
 	//calculate stats per api
 
-	pathStats := make(map[string]model.Latencies)
+	pathStats := make(map[string]model.Statistics)
 
 	for path, records := range pathLatencies {
 
@@ -47,13 +46,18 @@ func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Stat
 		min, _ := stats.Min(data)
 		avg, _ := stats.Mean(data)
 
-		pathStats[path] = model.Latencies{
-			AverageLatency: avg,
-			MedianLatency:  median,
-			MinLatency:     min,
-			MaxLatency:     max,
+		pathStats[path] = model.Statistics{
+			LatencyStats: model.Latencies{
+				AverageLatency: avg,
+				MedianLatency:  median,
+				MinLatency:     min,
+				MaxLatency:     max,
+			},
+			Errors:       0,
+			Total:        0,
+			SuccessRatio: 0,
+			ErrorRatio:   0,
 		}
-
 	}
 
 	return model.Statistics{

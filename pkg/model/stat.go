@@ -53,3 +53,16 @@ func (s *Statistics) String() string {
 
 `, s.Errors, s.Total, s.LatencyStats.AverageLatency, s.LatencyStats.MedianLatency, s.LatencyStats.MinLatency, s.LatencyStats.MaxLatency, s.SuccessRatio, s.ErrorRatio)
 }
+
+func (s *Statistics) Strings() []string {
+	return []string{
+		fmt.Sprintf("%f", s.LatencyStats.AverageLatency),
+		fmt.Sprintf("%f", s.LatencyStats.MedianLatency),
+		fmt.Sprintf("%f", s.LatencyStats.MinLatency),
+		fmt.Sprintf("%f", s.LatencyStats.MaxLatency),
+		fmt.Sprintf("%d", s.Total),
+		fmt.Sprintf("%f", s.ErrorRatio),
+		fmt.Sprintf("%f", s.SuccessRatio),
+		fmt.Sprintf("%f", s.ErrorRatio),
+	}
+}
