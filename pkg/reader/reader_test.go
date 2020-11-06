@@ -23,7 +23,7 @@ func TestFileStreamingReader_Read(t *testing.T) {
 		want    []*url.URL
 	}{
 		{
-			name: "should stream file",
+			name: "should stream file skipping empty lines",
 			args: args{
 				fileName: "test_data/targets",
 				onConsumeFn: func(url *url.URL) {

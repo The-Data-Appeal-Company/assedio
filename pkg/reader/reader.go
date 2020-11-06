@@ -10,8 +10,7 @@ type StreamingReader interface {
 	Read(fileName string, onConsumeFn func(url *url.URL), onCompleteFn func()) error
 }
 
-type FileStreamingReader struct {
-}
+type FileStreamingReader struct{}
 
 func (f *FileStreamingReader) Read(fileName string, onConsumeFn func(url *url.URL), onCompleteFn func()) error {
 	file, err := os.Open(fileName)
@@ -24,8 +23,11 @@ func (f *FileStreamingReader) Read(fileName string, onConsumeFn func(url *url.UR
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-
-		parsedUrl, err := url.Parse(scanner.Text())
+		text := scanner.Text()
+		if text == "" {
+			continue
+		}
+		parsedUrl, err := url.Parse(text)
 
 		if err != nil {
 			return err

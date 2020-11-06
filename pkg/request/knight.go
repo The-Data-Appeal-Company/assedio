@@ -57,7 +57,6 @@ func (k *Knight) Hit(urls chan *url.URL, results model.Slice) error {
 				Error:    true,
 			})
 		}
-
 	}
 	return nil
 }

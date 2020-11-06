@@ -23,8 +23,8 @@ func (a *AsciiWarBulletin) Render(results model.Slice) {
 	globalBulletin, groupedBulletin := a.calculator.Calculate(results)
 	headers := []string{"Path", "Average", "Median", "Min", "Max", "Total", "Errors", "Success Ratio", "Error Ratio"}
 	table := newTable(headers)
-	oddColors := getColor(tablewriter.Colors{tablewriter.BgHiWhiteColor, tablewriter.FgBlackColor}, len(headers))
-	evenColors := getColor(tablewriter.Colors{tablewriter.BgHiBlackColor, tablewriter.FgWhiteColor}, len(headers))
+	oddColors := getColor(tablewriter.Colors{tablewriter.FgHiBlackColor}, len(headers))
+	evenColors := getColor(tablewriter.Colors{tablewriter.FgWhiteColor}, len(headers))
 
 	i := 1
 	for path, group := range groupedBulletin {
