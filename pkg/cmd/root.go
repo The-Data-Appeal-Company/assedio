@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"assedio/pkg/data"
+	"assedio/pkg/calculator"
 	"assedio/pkg/model"
 	"bufio"
 	"fmt"
@@ -12,29 +12,20 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
+var results = model.NewThreadSafeSlice()
+
 var rootCmd = &cobra.Command{
-	Use: "start",
+	Use: "fight",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		color.Red(`
-  .----.-----.-----.-----.
- /      \     \     \     \
-|  \/    |     |   __L_____L__
-|   |    |     |  (           \
-|    \___/    /    \______/    |
-|        \___/\___/\___/       |
- \      \     /               /
-  |                        __/
-   \_                   __/
-    |        |         |
-    |                  |
-    |                  | 
-    ASSEDIO is ready to fight...
+		SetupCloseHandler()
 
-`)
+		color.Red(fmt.Sprintf("Starting assedio with %d knights ...", flagConcurrency))
 
 		errGroup, _ := errgroup.WithContext(cmd.Context())
 		client := &http.Client{
@@ -53,8 +44,6 @@ var rootCmd = &cobra.Command{
 				close(urls)
 			})
 		})
-
-		results := data.NewThreadSafeSlice()
 
 		for i := 0; i < flagConcurrency; i++ {
 			errGroup.Go(func() error {
@@ -107,20 +96,35 @@ var rootCmd = &cobra.Command{
 
 		err := errGroup.Wait()
 
-		calculator := data.AssedioStatisticsCalculator{}
-		esito, pathsEsito := calculator.Calculate(results)
-
-		fmt.Println(esito.String())
-
-		for path, esitoPerPath := range pathsEsito {
-			fmt.Println(path)
-			fmt.Println(esitoPerPath.String())
-		}
+		showAssedioEsito()
 
 		if err != nil {
 			log.Fatal(err)
 		}
 	},
+}
+
+func showAssedioEsito() {
+	calculator := calculator.AssedioStatisticsCalculator{}
+	esito, pathsEsito := calculator.Calculate(results)
+
+	fmt.Println(esito.String())
+
+	for path, esitoPerPath := range pathsEsito {
+		fmt.Println(path)
+		fmt.Println(esitoPerPath.String())
+	}
+}
+
+func SetupCloseHandler() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-c
+		fmt.Println("Stopping the assedio, retreating all knights from battlefield.")
+		showAssedioEsito()
+		os.Exit(0)
+	}()
 }
 
 var (
@@ -130,8 +134,8 @@ var (
 
 func init() {
 
-	rootCmd.PersistentFlags().IntVar(&flagConcurrency, "concurrency", 1, "assedio concurrency (default=1)")
-	rootCmd.PersistentFlags().StringVar(&flagFile, "file", "", "assedio file")
+	rootCmd.PersistentFlags().IntVarP(&flagConcurrency, "knights", "k", 1, "number of simultaneously knights making the assedio (default=1)")
+	rootCmd.PersistentFlags().StringVarP(&flagFile, "file", "f", "", "assedio file")
 }
 
 func Execute() {
