@@ -7,6 +7,7 @@ import (
 type Slice interface {
 	Append(Record)
 	Get(i int) Record
+	ToSlice() []Record
 	Len() int
 }
 
@@ -38,4 +39,18 @@ func (t *ThreadSafeSlice) Len() int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 	return len(t.slice)
+}
+
+func (t *ThreadSafeSlice) ToSlice() []Record {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+
+	slice := make([]Record, t.Len())
+
+	for i := 0; i < t.Len(); i++ {
+		slice[i] = t.Get(i)
+	}
+
+	return slice
+
 }

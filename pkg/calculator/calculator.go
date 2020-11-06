@@ -13,16 +13,34 @@ type AssedioStatisticsCalculator struct {
 }
 
 func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Statistics, map[string]model.Statistics) {
-	total := records.Len()
+
+	pathRecords := make(map[string][]model.Record)
+
+	for _, rec := range records.ToSlice() {
+		pathRecords[rec.Url.Path] = append(pathRecords[rec.Url.Path], rec)
+	}
+
+	totalStats := a.getStatistic(records.ToSlice())
+
+	pathStats := make(map[string]model.Statistics)
+
+	for path, records := range pathRecords {
+		pathStats[path] = a.getStatistic(records)
+	}
+
+	return totalStats, pathStats
+
+}
+
+func (a *AssedioStatisticsCalculator) getStatistic(records []model.Record) model.Statistics {
+
+	total := len(records)
 	errs := a.getErrors(records)
 
 	latencies := make([]float64, 0)
-	pathLatencies := make(map[string][]float64)
 
-	for i := 0; i < records.Len(); i++ {
-		rec := records.Get(i)
+	for _, rec := range records {
 		if !rec.Error {
-			pathLatencies[rec.Url.Path] = append(pathLatencies[rec.Url.Path], rec.Duration.Seconds())
 			latencies = append(latencies, rec.Duration.Seconds())
 		}
 	}
@@ -34,32 +52,6 @@ func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Stat
 	min, _ := stats.Min(data)
 	avg, _ := stats.Mean(data)
 
-	//calculate stats per api
-
-	pathStats := make(map[string]model.Statistics)
-
-	for path, records := range pathLatencies {
-
-		data := stats.LoadRawData(records)
-		median, _ := stats.Median(data)
-		max, _ := stats.Max(data)
-		min, _ := stats.Min(data)
-		avg, _ := stats.Mean(data)
-
-		pathStats[path] = model.Statistics{
-			LatencyStats: model.Latencies{
-				AverageLatency: avg,
-				MedianLatency:  median,
-				MinLatency:     min,
-				MaxLatency:     max,
-			},
-			Errors:       0,
-			Total:        0,
-			SuccessRatio: 0,
-			ErrorRatio:   0,
-		}
-	}
-
 	return model.Statistics{
 		LatencyStats: model.Latencies{
 			AverageLatency: avg,
@@ -70,15 +62,14 @@ func (a *AssedioStatisticsCalculator) Calculate(records model.Slice) (model.Stat
 		Total:        total,
 		SuccessRatio: (float64(total) - float64(errs)) / float64(total),
 		ErrorRatio:   float64(errs) / float64(total),
-	}, pathStats
+	}
 
 }
 
-func (a *AssedioStatisticsCalculator) getErrors(records model.Slice) int {
+func (a *AssedioStatisticsCalculator) getErrors(records []model.Record) int {
 	errors := 0
-
-	for i := 0; i < records.Len(); i++ {
-		if records.Get(i).Error {
+	for _, record := range records {
+		if record.Error {
 			errors++
 		}
 	}

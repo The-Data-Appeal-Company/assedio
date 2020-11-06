@@ -37,6 +37,13 @@ func TestAssedioStatisticsCalculator_Calculate(t *testing.T) {
 		Error:    false,
 	})
 
+	records.Append(model.Record{
+		Status:   "500 Internal Server Error",
+		Duration: 1 * time.Microsecond,
+		Url:      overallGroupedUrl1,
+		Error:    true,
+	})
+
 	type args struct {
 		records model.Slice
 	}
@@ -44,7 +51,7 @@ func TestAssedioStatisticsCalculator_Calculate(t *testing.T) {
 		name          string
 		args          args
 		wantStats     model.Statistics
-		wantPathStats map[string]model.Latencies
+		wantPathStats map[string]model.Statistics
 	}{
 		{
 			name: "shouldCalculate",
@@ -58,23 +65,35 @@ func TestAssedioStatisticsCalculator_Calculate(t *testing.T) {
 					MinLatency:     1,
 					MaxLatency:     2,
 				},
-				Errors:       0,
-				Total:        3,
-				SuccessRatio: 1.0,
-				ErrorRatio:   0.0,
+				Errors:       1,
+				Total:        4,
+				SuccessRatio: 0.75,
+				ErrorRatio:   0.25,
 			},
-			wantPathStats: map[string]model.Latencies{
+			wantPathStats: map[string]model.Statistics{
 				"/rates/poi/list": {
-					AverageLatency: float64(1),
-					MedianLatency:  float64(1),
-					MinLatency:     float64(1),
-					MaxLatency:     float64(1),
+					LatencyStats: model.Latencies{
+						AverageLatency: float64(1),
+						MedianLatency:  float64(1),
+						MinLatency:     float64(1),
+						MaxLatency:     float64(1),
+					},
+					Errors:       0,
+					Total:        1,
+					SuccessRatio: 1.0,
+					ErrorRatio:   0.0,
 				},
 				"/overall/grouped": {
-					AverageLatency: 1.5,
-					MedianLatency:  1.5,
-					MinLatency:     float64(1),
-					MaxLatency:     float64(2),
+					LatencyStats: model.Latencies{
+						AverageLatency: 1.5,
+						MedianLatency:  1.5,
+						MinLatency:     float64(1),
+						MaxLatency:     float64(2),
+					},
+					Errors:       1,
+					Total:        3,
+					SuccessRatio: 0.6666666666666666,
+					ErrorRatio:   0.3333333333333333,
 				},
 			},
 		},
