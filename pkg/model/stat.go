@@ -61,7 +61,7 @@ func (s *Statistics) Strings() []string {
 		fmt.Sprintf("%f", s.LatencyStats.MinLatency),
 		fmt.Sprintf("%f", s.LatencyStats.MaxLatency),
 		fmt.Sprintf("%d", s.Total),
-		fmt.Sprintf("%f", s.ErrorRatio),
+		fmt.Sprintf("%d", s.Errors),
 		fmt.Sprintf("%f", s.SuccessRatio),
 		fmt.Sprintf("%f", s.ErrorRatio),
 	}
