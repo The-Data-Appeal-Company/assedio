@@ -35,10 +35,36 @@ func TestFileStreamingReader_Read(t *testing.T) {
 			},
 			wantErr: false,
 			want: []*url.URL{
-				test.ParseUrlOrDie("http://trippa.io"),
-				test.ParseUrlOrDie("http://lampre.dotto"),
-				test.ParseUrlOrDie("http://antani.it"),
+				test.ParseUrlOrDie("https://trippa.io:8000"),
+				test.ParseUrlOrDie("lampre.dotto"),
+				test.ParseUrlOrDie("http://antani.it?clacsonava=true&supercazzola=sinistra"),
 			},
+		},
+		{
+			name: "should error when no such file",
+			args: args{
+				fileName: "test_data/nulla",
+				onConsumeFn: func(url *url.URL) {
+					consumed = append(consumed, url)
+				},
+				onCompleteFn: func() {
+					completedCalled = true
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "should error when invalid url",
+			args: args{
+				fileName: "test_data/targets_invalid_urls",
+				onConsumeFn: func(url *url.URL) {
+					consumed = append(consumed, url)
+				},
+				onCompleteFn: func() {
+					completedCalled = true
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -50,8 +76,10 @@ func TestFileStreamingReader_Read(t *testing.T) {
 				t.Errorf("Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			require.True(t, completedCalled)
-			require.Equal(t, tt.want, consumed)
+			if !tt.wantErr {
+				require.True(t, completedCalled)
+				require.Equal(t, tt.want, consumed)
+			}
 		})
 	}
 }
