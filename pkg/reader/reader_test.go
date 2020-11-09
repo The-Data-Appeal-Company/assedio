@@ -3,7 +3,6 @@ package reader
 import (
 	"assedio/pkg/test"
 	"context"
-	"fmt"
 	"github.com/stretchr/testify/require"
 	"net/url"
 	"testing"
@@ -83,8 +82,8 @@ func TestFileStreamingReader_Read(t *testing.T) {
 				t.Errorf("Read() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			require.True(t, completedCalled)
 			if !tt.wantErr {
-				require.True(t, completedCalled)
 				require.Equal(t, tt.want, consumed)
 			}
 		})
@@ -99,7 +98,7 @@ func TestShouldStopReadingWhenContextCanceled(t *testing.T) {
 	}, func() {
 		completedCalled = true
 	})
-	time.Sleep(25 * time.Microsecond)
+	time.Sleep(5 * time.Microsecond)
 	cancel()
 	time.Sleep(1 * time.Millisecond)
 	require.Less(t, len(consumed), 200)

@@ -57,8 +57,11 @@ func (fa *FightArmy) Fight(parentCtx context.Context, fileName string, nKnights 
 
 	err := errGroup.Wait()
 
+	if err != nil {
+		return err
+	}
 	fa.bulletin.Render(results)
-	return err
+	return nil
 }
 
 func (fa *FightArmy) SetupCloseHandler(cancel context.CancelFunc) {

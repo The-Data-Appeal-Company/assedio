@@ -14,13 +14,13 @@ type StreamingReader interface {
 type FileStreamingReader struct{}
 
 func (f *FileStreamingReader) Read(fileName string, ctx context.Context, onConsumeFn func(url *url.URL), onCompleteFn func()) error {
+	defer onCompleteFn()
 	file, err := os.Open(fileName)
 	if err != nil {
 		return err
 	}
 
 	defer file.Close()
-	defer onCompleteFn()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
