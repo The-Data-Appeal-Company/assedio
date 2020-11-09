@@ -19,14 +19,13 @@ type FightArmy struct {
 	reader   reader.StreamingReader
 	knight   request.Fighter
 	bulletin render.WarBulletin
-	results  model.Slice
 }
 
 func NewFightArmy(reader reader.StreamingReader, knight request.Fighter, bulletin render.WarBulletin) *FightArmy {
-	return &FightArmy{reader: reader, knight: knight, bulletin: bulletin, results: model.NewThreadSafeSlice()}
+	return &FightArmy{reader: reader, knight: knight, bulletin: bulletin}
 }
 
-func (fa *FightArmy) Fight(ctx context.Context, fileName string, nKnights int) error {
+func (fa *FightArmy) Fight(parentCtx context.Context, fileName string, nKnights int) error {
 	if fileName == "" {
 		return fmt.Errorf("file not specified")
 	}
@@ -35,14 +34,15 @@ func (fa *FightArmy) Fight(ctx context.Context, fileName string, nKnights int) e
 		return fmt.Errorf("you can't fight without knights")
 	}
 
-	fa.SetupCloseHandler()
+	results := model.NewThreadSafeSlice()
+	ctx, cancel := context.WithCancel(parentCtx)
 	color.Red(fmt.Sprintf("Fighting with %d knights ...", nKnights))
-
-	errGroup, _ := errgroup.WithContext(ctx)
+	errGroup, ctx := errgroup.WithContext(ctx)
+	fa.SetupCloseHandler(cancel)
 
 	urls := make(chan *url.URL)
 	errGroup.Go(func() error {
-		return fa.reader.Read(fileName, func(parsedUrl *url.URL) {
+		return fa.reader.Read(fileName, ctx, func(parsedUrl *url.URL) {
 			urls <- parsedUrl
 		}, func() {
 			close(urls)
@@ -51,23 +51,22 @@ func (fa *FightArmy) Fight(ctx context.Context, fileName string, nKnights int) e
 
 	for i := 0; i < nKnights; i++ {
 		errGroup.Go(func() error {
-			return fa.knight.Hit(urls, fa.results)
+			return fa.knight.Hit(urls, results)
 		})
 	}
 
 	err := errGroup.Wait()
 
-	fa.bulletin.Render(fa.results)
+	fa.bulletin.Render(results)
 	return err
 }
 
-func (fa *FightArmy) SetupCloseHandler() {
+func (fa *FightArmy) SetupCloseHandler(cancel context.CancelFunc) {
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-c
 		fmt.Println("Stopping the Fight, retreating all knights from battlefield.")
-		fa.bulletin.Render(fa.results)
-		os.Exit(0)
+		cancel()
 	}()
 }
