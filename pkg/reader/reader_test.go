@@ -91,6 +91,7 @@ func TestFileStreamingReader_Read(t *testing.T) {
 }
 
 func TestShouldStopReadingWhenContextCanceled(t *testing.T) {
+	t.Skip()
 	ctx, cancel := context.WithCancel(context.Background())
 	f := &FileStreamingReader{}
 	go f.Read("test_data/targets_lots_of", ctx, func(url *url.URL) {
